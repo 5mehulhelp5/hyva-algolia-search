@@ -1,314 +1,243 @@
 function initAlgoliaInstantSearch() {
-    selectors = {
+    const selectors = {
         instantResultsWrapper: 'algolia-instant-results-wrapper',
         instant_selector: '#instant-search-bar'
     }
-
-    /** We have nothing to do here if instantsearch is not enabled **/
-    if (typeof algoliaConfig === 'undefined' || !algoliaConfig.instant.enabled || !(algoliaConfig.isSearchPage || !algoliaConfig.autocomplete.enabled)) {
-        return;
-    }
-
-    if (document.querySelector(algoliaConfig.instant.selector).length <= 0) {
-        throw '[Algolia] Invalid instant-search selector: ' + algoliaConfig.instant.selector;
-    }
-
-    /*if (algoliaConfig.autocomplete.enabled && $(algoliaConfig.instant.selector).find(algoliaConfig.autocomplete.selector).length > 0) {
-            throw '[Algolia] You can\'t have a search input matching "' + algoliaConfig.autocomplete.selector +
-            '" inside you instant selector "' + algoliaConfig.instant.selector + '"';
-    }
-
-    var findAutocomplete = algoliaConfig.autocomplete.enabled && $(algoliaConfig.instant.selector).find('#algolia-autocomplete-container').length > 0;
-    if (findAutocomplete) {
-            $(algoliaConfig.instant.selector).find('#algolia-autocomplete-container').remove();
-    }*/
-
-    /** BC of old hooks **/
-    if (typeof algoliaHookBeforeInstantsearchInit === 'function') {
-        algolia.registerHook('beforeInstantsearchInit', algoliaHookBeforeInstantsearchInit);
-    }
-
-    if (typeof algoliaHookBeforeWidgetInitialization === 'function') {
-        algolia.registerHook('beforeWidgetInitialization', algoliaHookBeforeWidgetInitialization);
-    }
-
-    if (typeof algoliaHookBeforeInstantsearchStart === 'function') {
-        algolia.registerHook('beforeInstantsearchStart', algoliaHookBeforeInstantsearchStart);
-    }
-
-    if (typeof algoliaHookAfterInstantsearchStart === 'function') {
-        algolia.registerHook('afterInstantsearchStart', algoliaHookAfterInstantsearchStart);
-    }
-
-    /**
-     * Setup wrapper
-     *
-     * For templating is used Hogan library
-     * Docs: http://twitter.github.io/hogan.js/
-     **/
-    const wrapperTemplate = Hogan.compile(document.querySelector('#instant_wrapper_template').innerHTML);
-
-    const div = document.createElement('div');
-    div.setAttribute('id', selectors.instantResultsWrapper);
-
-    document.querySelector(algoliaConfig.instant.selector).classList.add('algolia-instant-replaced-content');
-
-    //wrap instantSelector
-    const el = document.querySelector(algoliaConfig.instant.selector);
-    let wrapperEl = document.createElement('div');
-    wrapperEl.setAttribute("id", selectors.instantResultsWrapper);
-    el.parentNode.insertBefore(wrapperEl, el);
-    wrapperEl.appendChild(el);
-
-    //render wrapper template with Hogan
-    let wrapper = wrapperTemplate.render({
-        second_bar: algoliaConfig.instant.enabled,
-        config: algoliaConfig.instant,
-        translations: algoliaConfig.translations
-    });
-    document.getElementById(selectors.instantResultsWrapper).innerHTML += '<div id="algolia-instant-selector-results">' + wrapper + '</div>';
-    document.querySelector('#algolia-instant-selector-results').innerHTML = wrapper;
-    document.getElementById(selectors.instantResultsWrapper).style.display = 'block';
-
-    /**
-     * Initialise instant search
-     * For rendering instant search page is used Algolia's instantsearch.js library
-     * Docs: https://www.algolia.com/doc/api-reference/widgets/instantsearch/js/
-     **/
-
-    const ruleContexts = ['magento_filters', '']; // Empty context to keep BC for already create rules in dashboard
-
-    if (algoliaConfig.request.categoryId.length > 0) {
-        ruleContexts.push('magento-category-' + algoliaConfig.request.categoryId);
-    }
-
-    if (algoliaConfig.request.landingPageId.length > 0) {
-        ruleContexts.push('magento-landingpage-' + algoliaConfig.request.landingPageId);
-    }
-
-    const searchClient = algoliasearch(algoliaConfig.applicationId, algoliaConfig.apiKey);
-    const indexName = algoliaConfig.indexName + '_products';
-    let searchParameters = {
-        hitsPerPage: algoliaConfig.hitsPerPage,
-        ruleContexts: ruleContexts,
-        // clickAnalytics: true
-    };
-
-    const replacedContent = document.querySelector('.algolia-instant-replaced-content');
-    const instantSelectorResults = document.querySelector('#algolia-instant-selector-results');
-
-    let instantsearchOptions = {
-        searchClient: searchClient,
-        indexName: indexName,
-        // searchFunction: function (helper) {
-        //     if (helper.state.query === '' && !algoliaConfig.isSearchPage) {
-        //         replacedContent.style.display = 'block';
-        //         instantSelectorResults.style.display = 'none';
-        //     } else {
-        //         helper.search();
-        //         replacedContent.style.display = 'none';
-        //         instantSelectorResults.style.display = 'block';
-        //     }
-        // },
-        routing: window.routing
-    }
-
-    if (algoliaConfig.request.path.length > 0 && window.location.hash.indexOf('categories.level0') === -1) {
-        if (algoliaConfig.areCategoriesInFacets === false) {
-            searchParameters['facetsRefinements'] = {};
-            searchParameters['facetsRefinements']['categories.level' + algoliaConfig.request.level] = [algoliaConfig.request.path];
-        }
-    }
-
-    if (algoliaConfig.instant.isVisualMerchEnabled && algoliaConfig.isCategoryPage) {
-        searchParameters.filters = `${algoliaConfig.instant.categoryPageIdAttribute}:'${algoliaConfig.request.path}'`;
-    }
-
-    instantsearchOptions = algolia.triggerHooks('beforeInstantsearchInit', instantsearchOptions);
-
-    let search = instantsearch(instantsearchOptions);
-
-    search.client.addAlgoliaAgent('Magento2 integration (' + algoliaConfig.extensionVersion + ')');
-
-    /** Prepare sorting indices data */
-    algoliaConfig.sortingIndices.unshift({
-        name: indexName,
-        label: algoliaConfig.translations.relevance
-    });
-
-    /** Setup attributes for current refinements widget **/
-    let attributes = [];
-    algoliaConfig.facets.forEach(function (facet) {
-        let name = facet.attribute;
-
-        if (name === 'categories') {
-            name = 'categories.level0';
-        }
-
-        if (name === 'price') {
-            name = facet.attribute + algoliaConfig.priceKey
-        }
-
-        attributes.push({
-            name: name,
-            label: facet.label ? facet.label : facet.attribute
+    function initialize() {
+        // Initialize template processor first, then build instant search
+        initTemplateProcessor().then(() => {
+            buildInstantSearch();
         });
-    });
+    }
 
-    let allWidgetConfiguration = {
-        infiniteHits: {},
-        hits: {},
-        configure: searchParameters,
-        custom: [
-            /**
-             * Custom widget - this widget is used to refine results for search page or catalog page
-             * Docs: https://www.algolia.com/doc/guides/building-search-ui/widgets/create-your-own-widgets/js/
-             **/
+    /**
+     * Initialize template processor asynchronously
+     * @returns {Promise<void>}
+     */
+    async function initTemplateProcessor() {
+        window.templateProcessor = await window.templateEngine.getSelectedEngineAdapter();
+    }
+
+    /**
+     * Initialize search results using Algolia's InstantSearch.js library v4
+     * Docs: https://www.algolia.com/doc/api-reference/widgets/instantsearch/js/
+     */
+    function buildInstantSearch() {
+
+        if (!checkInstantSearchEnablement()) return;
+
+        invokeLegacyHooks();
+
+        setupWrapper();
+
+        const indexName = algoliaConfig.indexName + '_products';
+
+        let instantsearchOptions = algolia.triggerHooks(
+            'beforeInstantsearchInit',
             {
-                getWidgetSearchParameters: function (searchParameters) {
-                    if (algoliaConfig.request.query.length > 0 && location.hash.length < 1) {
-                        return searchParameters.setQuery(algolia.htmlspecialcharsDecode(algoliaConfig.request.query))
-                    }
-                    return searchParameters;
+                searchClient: algoliasearch(algoliaConfig.applicationId, algoliaConfig.apiKey),
+                indexName: indexName,
+                routing: window.routing
+            },
+        );
+
+        const search = instantsearch(instantsearchOptions);
+
+        search.client.addAlgoliaAgent(getAlgoliaAgent());
+
+        /** Prepare sorting indices data */
+        algoliaConfig.sortingIndices.unshift({
+            name: indexName,
+            label: algoliaConfig.translations.relevance,
+        });
+
+        const currentRefinementsAttributes = getCurrentRefinementsAttributes();
+
+        const replacedContent = document.querySelector('.algolia-instant-replaced-content');
+        const instantSelectorResults = document.querySelector('#algolia-instant-selector-results');
+
+        let allWidgetConfiguration = {
+            infiniteHits: {},
+            hits: {},
+            configure: getSearchParameters(),
+            custom: [
+                /**
+                 * Custom widget - this widget is used to refine results for search page or catalog page
+                 * Docs: https://www.algolia.com/doc/guides/building-search-ui/widgets/create-your-own-widgets/js/
+                 **/
+                {
+                    getWidgetSearchParameters: function (searchParameters) {
+                        if (algoliaConfig.request.query.length > 0 && location.hash.length < 1) {
+                            return searchParameters.setQuery(algolia.htmlspecialcharsDecode(algoliaConfig.request.query))
+                        }
+                        return searchParameters;
+                    },
+                    init: function (data) {
+                        const page = data.helper.state.page;
+
+                        if (algoliaConfig.request.refinementKey.length > 0) {
+                            data.helper.toggleRefine(
+                                algoliaConfig.request.refinementKey,
+                                algoliaConfig.request.refinementValue
+                            );
+                        }
+
+                        if (algoliaConfig.isCategoryPage) {
+                            data.helper.addNumericRefinement('visibility_catalog', '=', 1);
+                        } else {
+                            data.helper.addNumericRefinement('visibility_search', '=', 1);
+                        }
+
+                        data.helper.setPage(page);
+                    },
+                    render: function (data) {
+                        if (!algoliaConfig.isSearchPage) {
+                            if (
+                                data.results.query.length === 0 &&
+                                data.results.nbHits === 0
+                            ) {
+                                replacedContent.style.display = 'block';
+                                instantSelectorResults.style.display = 'none';
+                            } else {
+                                replacedContent.style.display = 'none';
+                                instantSelectorResults.style.display = 'block';
+                            }
+                        }
+                    },
                 },
-                init: function (data) {
-                    const page = data.helper.state.page;
+                /**
+                 * Custom widget - Suggestions
+                 * This widget renders suggestion queries which might be interesting for your customer
+                 * Docs: https://www.algolia.com/doc/guides/building-search-ui/widgets/create-your-own-widgets/js/
+                 **/
+                {
+                    suggestions: [],
+                    init: function () {
+                        if (algoliaConfig.showSuggestionsOnNoResultsPage) {
+                            const _self = this;
+                            let popuparQueries = algoliaConfig.popularQueries.slice(0, Math.min(4, algoliaConfig.popularQueries.length));
+                            for (let i in popuparQueries) {
+                                let query = popuparQueries[i];
+                                _self.suggestions.push('<a href="' + algoliaConfig.baseUrl + '/catalogsearch/result/?q=' + encodeURIComponent(query) + '">' + query + '</a>');
+                            }
+                        }
+                    },
+                    render: function (data) {
+                        const emptyContainer = document.getElementById('instant-empty-results-container');
+                        if (data.results.hits.length === 0) {
+                            var content = '<div class="no-results text-center">';
+                            content += '<div><b>' + algoliaConfig.translations.noProducts + ' "' + '<span>' + data.results.query + '</span></b>"</div>';
+                            content += '<div class="popular-searches py-2">';
 
-                    if (algoliaConfig.request.refinementKey.length > 0) {
-                        data.helper.toggleRefine(algoliaConfig.request.refinementKey, algoliaConfig.request.refinementValue);
-                    }
+                            if (algoliaConfig.showSuggestionsOnNoResultsPage && this.suggestions.length > 0) {
+                                content += '<div>' + algoliaConfig.translations.popularQueries + '</div>' + this.suggestions.join(', ');
+                            }
 
-                    if (algoliaConfig.isCategoryPage) {
-                        data.helper.addNumericRefinement('visibility_catalog', '=', 1);
-                    } else {
-                        data.helper.addNumericRefinement('visibility_search', '=', 1);
-                    }
+                            content += '</div>';
+                            content += algoliaConfig.translations.or + ' <a href="' + algoliaConfig.baseUrl + '/catalogsearch/result/?q=__empty__">' + algoliaConfig.translations.seeAll + '</a>'
 
-                    data.helper.setPage(page);
+                            content += '</div>';
+
+                            emptyContainer.innerHTML = content;
+                        } else {
+                            emptyContainer.innerHTML = '';
+                        }
+                    },
                 },
-                render: function (data) {
-                    if (!algoliaConfig.isSearchPage) {
-                        if (data.results.query.length === 0 && data.results.nbHits === 0) {
+            ],
+            /**
+             * stats
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/stats/js/
+             **/
+            stats: {
+                container: '#algolia-stats',
+                templates: {
+                    text: function (data) {
+                        data.first = data.page * data.hitsPerPage + 1;
+                        data.last = Math.min(data.page * data.hitsPerPage + data.hitsPerPage, data.nbHits);
+                        data.seconds = data.processingTimeMS / 1000;
+                        data.translations = algoliaConfig.translations;
+
+                        // TODO: Revisit this injected jQuery logic
+                        const searchParams = new URLSearchParams(window.location.search);
+                        const searchQuery = searchParams.has('q') || '';
+                        if (searchQuery === '' && !algoliaConfig.isSearchPage) {
                             replacedContent.style.display = 'block';
                             instantSelectorResults.style.display = 'none';
                         } else {
                             replacedContent.style.display = 'none';
                             instantSelectorResults.style.display = 'block';
                         }
-                    }
-                }
+
+                        const template = document.getElementById('instant-stats-template').innerHTML;
+                        return window.templateProcessor.process(template, data);
+                    },
+                },
             },
             /**
-             * Custom widget - Suggestions
-             * This widget renders suggestion queries which might be interesting for your customer
-             * Docs: https://www.algolia.com/doc/guides/building-search-ui/widgets/create-your-own-widgets/js/
+             * sortBy
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/sort-by/js/
              **/
-            {
-                suggestions: [],
-                init: function () {
-                    if (algoliaConfig.showSuggestionsOnNoResultsPage) {
-                        const _self = this;
-                        let popuparQueries = algoliaConfig.popularQueries.slice(0, Math.min(4, algoliaConfig.popularQueries.length));
-                        for (let i in popuparQueries) {
-                            let query = popuparQueries[i];
-                            _self.suggestions.push('<a href="' + algoliaConfig.baseUrl + '/catalogsearch/result/?q=' + encodeURIComponent(query) + '">' + query + '</a>');
-                        }
-                    }
-                },
-                render: function (data) {
-                    const emptyContainer = document.getElementById('instant-empty-results-container');
-                    if (data.results.hits.length === 0) {
-                        var content = '<div class="no-results text-center">';
-                        content += '<div><b>' + algoliaConfig.translations.noProducts + ' "' + '<span>' + data.results.query + '</span></b>"</div>';
-                        content += '<div class="popular-searches py-2">';
-
-                        if (algoliaConfig.showSuggestionsOnNoResultsPage && this.suggestions.length > 0) {
-                            content += '<div>' + algoliaConfig.translations.popularQueries + '</div>' + this.suggestions.join(', ');
-                        }
-
-                        content += '</div>';
-                        content += algoliaConfig.translations.or + ' <a href="' + algoliaConfig.baseUrl + '/catalogsearch/result/?q=__empty__">' + algoliaConfig.translations.seeAll + '</a>'
-
-                        content += '</div>';
-
-                        emptyContainer.innerHTML = content;
-                    } else {
-                        emptyContainer.innerHTML = '';
-                    }
-                }
-            }
-        ],
-        /**
-         * stats
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/stats/js/
-         **/
-        stats: {
-            container: '#algolia-stats',
-            templates: {
-                text: function (data) {
-                    const hoganTemplate = Hogan.compile(document.getElementById('instant-stats-template').innerHTML);
-
-                    data.first = data.page * data.hitsPerPage + 1;
-                    data.last = Math.min(data.page * data.hitsPerPage + data.hitsPerPage, data.nbHits);
-                    data.seconds = data.processingTimeMS / 1000;
-                    data.translations = algoliaConfig.translations;
-
-                    return hoganTemplate.render(data)
-                }
-            }
-        },
-        /**
-         * sortBy
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/sort-by/js/
-         **/
-        sortBy: {
-            container: '#algolia-sorts',
-            items: algoliaConfig.sortingIndices.map(function (sortingIndice) {
-                return {
-                    label: sortingIndice.label,
-                    value: sortingIndice.name,
-                }
-            })
-        },
-        /**
-         * currentRefinements
-         * Widget displays all filters and refinements applied on query. It also let your customer to clear them one by one
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/current-refinements/js/
-         **/
-        currentRefinements: {
-            container: '#current-refinements',
-            // TODO: Remove this - it does nothing
-            templates: {
-                item: document.getElementById('current-refinements-template').innerHTML
+            sortBy: {
+                container: '#algolia-sorts',
+                items: algoliaConfig.sortingIndices.map(function (sortingIndice) {
+                    return {
+                        label: sortingIndice.label,
+                        value: sortingIndice.name,
+                    };
+                }),
             },
-            includedAttributes: attributes.map(attribute => {
-                if (attribute.name.indexOf('categories') === -1
-                    || !algoliaConfig.isCategoryPage) // For category browse, requires a custom renderer to prevent removal of the root node from hierarchicalMenu widget
-                    return attribute.name;
-            }),
+            /**
+             * currentRefinements
+             * Widget displays all filters and refinements applied on query. It also let your customer to clear them one by one
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/current-refinements/js/
+             **/
+            currentRefinements: {
+                container: '#current-refinements',
+                // TODO: Remove this - it does nothing
+                templates: {
+                    item: document.getElementById('current-refinements-template').innerHTML
+                },
+                includedAttributes: currentRefinementsAttributes.map(attribute => {
+                    if (attribute.name.indexOf('categories') === -1 ||
+                        !algoliaConfig.isCategoryPage
+                    )
+                        // For category browse, requires a custom renderer to prevent removal of the root node from hierarchicalMenu widget
+                        return attribute.name;
+                }),
 
-            transformItems: items => {
-                return items
-                    // This filter is only applicable if categories facet is included as an attribute
-                    .filter(item => {
-                        return !algoliaConfig.isCategoryPage
-                            || item.refinements.filter(refinement => refinement.value !== algoliaConfig.request.path).length; // do not expose the category root
-                    })
-                    .map(item => {
-                        const attribute = attributes.filter(_attribute => {
-                            return item.attribute === _attribute.name
-                        })[0];
-                        if (!attribute) return item;
-                        item.label = attribute.label;
-                        item.refinements.forEach(function (refinement) {
-                            if (refinement.type !== 'hierarchical') return refinement;
+                transformItems: (items) => {
+                    return (
+                        items
+                            // This filter is only applicable if categories facet is included as an attribute
+                            .filter((item) => {
+                                return (
+                                    !algoliaConfig.isCategoryPage ||
+                                    item.refinements.filter(
+                                        (refinement) =>
+                                            refinement.value !== algoliaConfig.request.path
+                                    ).length
+                                ); // do not expose the category root
+                            })
+                            .map((item) => {
+                                const attribute = currentRefinementsAttributes.filter((_attribute) => {
+                                    return item.attribute === _attribute.name;
+                                })[0];
+                                if (!attribute) return item;
+                                item.label = attribute.label;
+                                item.refinements.forEach(function (refinement) {
+                                    if (refinement.type !== 'hierarchical') return refinement;
 
-                            const levels = refinement.label.split(algoliaConfig.instant.categorySeparator);
-                            const lastLevel = levels[levels.length - 1];
-                            refinement.label = lastLevel;
-                        });
-                        return item;
-                    });
+                                    const levels = refinement.label.split(
+                                        algoliaConfig.instant.categorySeparator
+                                    );
+                                    const lastLevel = levels[levels.length - 1];
+                                    refinement.label = lastLevel;
+                                });
+                                return item;
+                            })
+                    );
+                },
             },
 
             /*
@@ -321,7 +250,7 @@ function initAlgoliaInstantSearch() {
                 templates: {
                     resetLabel: algoliaConfig.translations.clearAll,
                 },
-                includedAttributes: attributes.map(function (attribute) {
+                includedAttributes: currentRefinementsAttributes.map(function (attribute) {
                     if (!(algoliaConfig.isCategoryPage && attribute.name.indexOf('categories') > -1)) {
                         return attribute.name;
                     }
@@ -331,15 +260,16 @@ function initAlgoliaInstantSearch() {
                 },
                 transformItems: function (items) {
                     return items.map(function (item) {
-                        const attribute = attributes.filter(function (_attribute) {
+                        const attribute = currentRefinementsAttributes.filter(function (_attribute) {
                             return item.attribute === _attribute.name
                         })[0];
                         if (!attribute) return item;
                         item.label = attribute.label;
                         return item;
-                    })
-                }
+                    });
+                },
             },
+
             /*
              * queryRuleCustomData
              * The queryRuleCustomData widget displays custom data from Query Rules.
@@ -349,108 +279,117 @@ function initAlgoliaInstantSearch() {
                 container: '#algolia-banner',
                 templates: {
                     default: '{{#items}} {{#banner}} {{{banner}}} {{/banner}} {{/items}}',
-                }
-            }
+                },
+            },
         }
-    };
 
-    if (algoliaConfig.instant.isSearchBoxEnabled) {
-        /**
-         * searchBox
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/search-box/js/
-         **/
-        allWidgetConfiguration.searchBox = {
-            container: selectors.instant_selector,
-            placeholder: algoliaConfig.translations.searchFor,
-            showSubmit: false,
-            queryHook: function (inputValue, search) {
-                if (algoliaConfig.isSearchPage && algoliaConfig.request.categoryId.length <= 0 && algoliaConfig.request.landingPageId.length <= 0) {
-                    document.querySelector(".page-title span").innerHTML = algoliaConfig.translations.searchTitle + ": '" + inputValue + "'";
-                }
-                return search(inputValue);
-            }
+        if (algoliaConfig.instant.isSearchBoxEnabled) {
+            /**
+             * searchBox
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/search-box/js/
+             **/
+            allWidgetConfiguration.searchBox = {
+                container: selectors.instant_selector,
+                placeholder: algoliaConfig.translations.searchFor,
+                showSubmit: false,
+                queryHook: (inputValue, search) => {
+                    if (
+                        algoliaConfig.isSearchPage &&
+                        !algoliaConfig.request.categoryId &&
+                        !algoliaConfig.request.landingPageId.length
+                    ) {
+                        document.querySelector(".page-title span").innerHTML =
+                            algoliaConfig.translations.searchTitle +
+                            ": '" + inputValue +
+                            "'";
+                    }
+                    return search(inputValue);
+                },
+            };
         }
-    }
 
-    if (algoliaConfig.instant.infiniteScrollEnabled === true) {
-        /**
-         * infiniteHits
-         * This widget renders all products into result page
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/infinite-hits/js/
-         **/
-        allWidgetConfiguration.infiniteHits = {
-            container: '#instant-search-results-container',
-            templates: {
-                empty: '',
-                item: document.getElementById('instant-hit-template').innerHTML,
-                showMoreText: algoliaConfig.translations.showMore
-            },
-            cssClasses: {
-                loadPrevious: ['action', 'primary'],
-                loadMore: ['action', 'primary']
-            },
-            transformItems: function (items) {
-                return items.map(function (item) {
-                    item.__indexName = search.helper.lastResults.index;
-                    item = transformHit(item, algoliaConfig.priceKey, search.helper);
-                    // FIXME: transformHit is a global
-                    item.isAddToCartEnabled = algoliaConfig.instant.isAddToCartEnabled;
-                    return item;
-                });
-            },
-            showPrevious: true,
-            escapeHits: true
-        };
+        if (algoliaConfig.instant.infiniteScrollEnabled === true) {
+            /**
+             * infiniteHits
+             * This widget renders all products into result page
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/infinite-hits/js/
+             **/
+            allWidgetConfiguration.infiniteHits = {
+                container: '#instant-search-results-container',
+                templates: {
+                    empty: '',
+                    item: document.getElementById('instant-hit-template').innerHTML,
+                    showMoreText: algoliaConfig.translations.showMore,
+                },
+                cssClasses: {
+                    loadPrevious: ['action', 'primary'],
+                    loadMore: ['action', 'primary'],
+                },
+                transformItems: function (items) {
+                    return items.map(function (item) {
+                        item.__indexName = search.helper.lastResults.index;
+                        item = transformHit(item, algoliaConfig.priceKey, search.helper);
+                        // FIXME: transformHit is a global
+                        item.isAddToCartEnabled = algoliaConfig.instant.isAddToCartEnabled;
+                        return item;
+                    });
+                },
+                showPrevious: true,
+                escapeHits: true
+            };
 
-        delete allWidgetConfiguration.hits;
-    } else {
-        /**
-         * hits
-         * This widget renders all products into result page
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/hits/js/
-         **/
-        allWidgetConfiguration.hits = {
-            container: '#instant-search-results-container',
-            templates: {
-                empty: '',
-                item: document.getElementById("instant-hit-template").innerHTML
-            },
-            transformItems: function (items, {results}) {
-                if (results.nbPages <= 1 && algoliaConfig.instant.hidePagination === true) {
-                    document.getElementById('instant-search-pagination-container').style.display = "none";
-                } else {
-                    document.getElementById('instant-search-pagination-container').style.display = "block";
-                }
-                return items.map(function (item) {
-                    item.__indexName = search.helper.lastResults.index;
-                    item = transformHit(item, algoliaConfig.priceKey, search.helper);
-                    // FIXME: transformHit is a global
-                    item.isAddToCartEnabled = algoliaConfig.instant.isAddToCartEnabled;
-                    item.algoliaConfig = window.algoliaConfig;
-                    return item;
-                })
-            }
-        };
+            delete allWidgetConfiguration.hits;
+        } else {
+            /**
+             * hits
+             * This widget renders all products into result page
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/hits/js/
+             **/
+            allWidgetConfiguration.hits = {
+                container: '#instant-search-results-container',
+                templates: {
+                    empty: '',
+                    item: document.getElementById("instant-hit-template").innerHTML
+                },
+                transformItems: function (items, {results}) {
+                    if (
+                        results.nbPages <= 1 &&
+                        algoliaConfig.instant.hidePagination === true
+                    ) {
+                        document.getElementById('instant-search-pagination-container').style.display = "none";
+                    } else {
+                        document.getElementById('instant-search-pagination-container').style.display = "block";
+                    }
+                    return items.map(function (item) {
+                        item.__indexName = search.helper.lastResults.index;
+                        item = transformHit(item, algoliaConfig.priceKey, search.helper);
+                        item.isAddToCartEnabled = algoliaConfig.instant.isAddToCartEnabled;
+                        item.algoliaConfig = window.algoliaConfig;
+                        return item;
+                    });
+                },
+            };
 
-        /**
-         * pagination
-         * Docs: https://www.algolia.com/doc/api-reference/widgets/pagination/js/
-         **/
-        allWidgetConfiguration.pagination = {
-            container: '#instant-search-pagination-container',
-            showFirst: false,
-            showLast: false,
-            showNext: true,
-            showPrevious: true,
-            totalPages: 1000,
-            templates: {
-                previous: algoliaConfig.translations.previousPage,
-                next: algoliaConfig.translations.nextPage
-            },
-        };
+            /**
+             * pagination
+             * Docs: https://www.algolia.com/doc/api-reference/widgets/pagination/js/
+             **/
+            allWidgetConfiguration.pagination = {
+                container: '#instant-search-pagination-container',
+                showFirst: false,
+                showLast: false,
+                showNext: true,
+                showPrevious: true,
+                totalPages: 1000,
+                templates: {
+                    previous: algoliaConfig.translations.previousPage,
+                    next: algoliaConfig.translations.nextPage,
+                },
+            };
 
-        delete allWidgetConfiguration.infiniteHits;
-    }
+            delete allWidgetConfiguration.infiniteHits;
+        }
+
 
     /**
      * Here are specified custom attributes widgets which require special code to run properly
@@ -465,21 +404,24 @@ function initAlgoliaInstantSearch() {
             }
 
             const hierarchicalMenuParams = {
-                container: facet.wrapper.appendChild(createISWidgetContainer(facet.attribute)),
+                container: facet.wrapper.appendChild(
+                    createISWidgetContainer(facet.attribute)
+                ),
                 attributes: hierarchical_levels,
                 separator: algoliaConfig.instant.categorySeparator,
                 templates: templates,
                 showParentLevel: true,
                 limit: algoliaConfig.maxValuesPerFacet,
-                rootPath: algoliaConfig.request.path,
                 sortBy: ['name:asc'],
                 transformItems(items) {
-                    return (algoliaConfig.isCategoryPage)
-                        ? items.map(
-                            item => {
+                    return algoliaConfig.isCategoryPage
+                        ? items.map((item) => {
                                 return {
                                     ...item,
-                                    categoryUrl: algoliaConfig.instant.isCategoryNavigationEnabled ? algoliaConfig.request.childCategories[item.value]['url'] : ''
+                                    categoryUrl: algoliaConfig.instant
+                                        .isCategoryNavigationEnabled
+                                        ? algoliaConfig.request.childCategories[item.value]['url']
+                                        : '',
                                 };
                             }
                         )
@@ -487,8 +429,13 @@ function initAlgoliaInstantSearch() {
                 },
             };
 
-            hierarchicalMenuParams.templates.item = '' +
-                '<a class="{{cssClasses.link}} {{#isRefined}}{{cssClasses.link}}--selected{{/isRefined}}" href="{{categoryUrl}}">{{label}}' + ' ' +
+            if (algoliaConfig.isCategoryPage) {
+                hierarchicalMenuParams.rootPath = algoliaConfig.request.path;
+            }
+
+            hierarchicalMenuParams.templates.item =
+                '<a class="{{cssClasses.link}} {{#isRefined}}{{cssClasses.link}}--selected{{/isRefined}}" href="{{categoryUrl}}"><span class="{{cssClasses.label}}">{{label}}</span>' +
+                ' ' +
                 '<span class="{{cssClasses.count}}">{{#helpers.formatNumber}}{{count}}{{/helpers.formatNumber}}</span>' +
                 '</a>';
             hierarchicalMenuParams.panelOptions = {
@@ -497,15 +444,309 @@ function initAlgoliaInstantSearch() {
                 },
                 hidden: function ({items}) {
                     return !items.length;
-                }
+                },
             };
 
             return ['hierarchicalMenu', hierarchicalMenuParams];
-        }
+        },
     };
 
     /** Add all facet widgets to instantsearch object **/
-    window.getFacetWidget = function (facet, templates) {
+    let facetWrapper = document.getElementById('instant-search-facets-container');
+    for (let facetIndex in algoliaConfig.facets) {
+        let facet = algoliaConfig.facets[facetIndex];
+        if (facet.attribute.indexOf("price") !== -1)
+            facet.attribute = facet.attribute + algoliaConfig.priceKey;
+
+        facet.wrapper = facetWrapper;
+
+        const templates = {
+            item: document.getElementById('refinements-lists-item-template').innerHTML
+        };
+
+        const widgetInfo = customAttributeFacet[facet.attribute] !== undefined
+            ? customAttributeFacet[facet.attribute](facet, templates)
+            : getFacetWidget(facet, templates);
+
+        const widgetType = widgetInfo[0],
+            widgetConfig = widgetInfo[1];
+
+        if (typeof allWidgetConfiguration[widgetType] === 'undefined') {
+            allWidgetConfiguration[widgetType] = [widgetConfig];
+        } else {
+            allWidgetConfiguration[widgetType].push(widgetConfig);
+        }
+    }
+
+
+    if (algoliaConfig.analytics.enabled) {
+        if (typeof algoliaAnalyticsPushFunction !== 'function') {
+            let algoliaAnalyticsPushFunction = function (
+                formattedParameters,
+                state,
+                results
+            ) {
+                const trackedUrl =
+                    '/catalogsearch/result/?q=' +
+                    state.query +
+                    '&' +
+                    formattedParameters +
+                    '&numberOfHits=' +
+                    results.nbHits;
+
+                // Universal Analytics
+                if (typeof window.ga !== 'undefined') {
+                    window.ga('set', 'page', trackedUrl);
+                    window.ga('send', 'pageView');
+                }
+            };
+        }
+
+        allWidgetConfiguration['analytics'] = {
+            pushFunction: algoliaAnalyticsPushFunction,
+            delay: algoliaConfig.analytics.delay,
+            triggerOnUIInteraction: algoliaConfig.analytics.triggerOnUiInteraction,
+            pushInitialSearch: algoliaConfig.analytics.pushInitialSearch,
+        };
+    }
+
+    allWidgetConfiguration = algolia.triggerHooks(
+        'beforeWidgetInitialization',
+        allWidgetConfiguration
+    );
+
+    for (let widgetType in allWidgetConfiguration) {
+        if (Array.isArray(allWidgetConfiguration[widgetType]) === true) {
+            for (let i in allWidgetConfiguration[widgetType]) {
+                addWidget(search, widgetType, allWidgetConfiguration[widgetType][i], instantsearch);
+            }
+        } else {
+            addWidget(search, widgetType, allWidgetConfiguration[widgetType], instantsearch);
+        }
+    }
+
+    // Capture active redirect URL with IS facet params for add to cart from PLP
+    if (algoliaConfig.instant.isAddToCartEnabled) {
+        search.on('render', () => {
+            const cartForms = document.querySelectorAll('[data-role="tocart-form"]');
+            cartForms.forEach((form, i) => {
+                form.addEventListener('submit', (e) => {
+                    const url = `${algoliaConfig.request.url}${window.location.search}`;
+                    e.target.elements[
+                        algoliaConfig.instant.addToCartParams.redirectUrlParam
+                        ].value = window.AlgoliaBase64.mageEncode(url);
+                    });
+                });
+            });
+        }
+
+        startInstantSearch(search);
+        addMobileRefinementsToggle();
+    }
+
+    /**
+     * @deprecated - these hooks will be removed in a future version
+     */
+    function invokeLegacyHooks() {
+        if (typeof algoliaHookBeforeInstantsearchInit === 'function') {
+            algolia.registerHook('beforeInstantsearchInit', algoliaHookBeforeInstantsearchInit);
+        }
+
+        if (typeof algoliaHookBeforeWidgetInitialization === 'function') {
+            algolia.registerHook('beforeWidgetInitialization', algoliaHookBeforeWidgetInitialization);
+        }
+
+        if (typeof algoliaHookBeforeInstantsearchStart === 'function') {
+            algolia.registerHook('beforeInstantsearchStart', algoliaHookBeforeInstantsearchStart);
+        }
+
+        if (typeof algoliaHookAfterInstantsearchStart === 'function') {
+            algolia.registerHook('afterInstantsearchStart', algoliaHookAfterInstantsearchStart);
+        }
+    }
+
+    /**
+     * Pre-flight checks
+     *
+     * @returns {boolean} Returns true if InstantSearch is good to go
+     */
+    function checkInstantSearchEnablement() {
+        if (
+            typeof algoliaConfig === 'undefined' ||
+            !algoliaConfig.instant.enabled ||
+            !algoliaConfig.isSearchPage
+        ) {
+            return false;
+        }
+
+        if (!$(algoliaConfig.instant.selector).length) {
+            throw new Error(
+                `[Algolia] Invalid instant-search selector: ${algoliaConfig.instant.selector}`
+            );
+        }
+
+        if (
+            algoliaConfig.autocomplete.enabled &&
+            $(algoliaConfig.instant.selector).find(
+                algoliaConfig.autocomplete.selector
+            ).length
+        ) {
+            throw new Error(
+                `[Algolia] You can't have a search input matching "${algoliaConfig.autocomplete.selector}" ` +
+                `inside your instant selector "${algoliaConfig.instant.selector}"`
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Handle nested Autocomplete (legacy)
+     * @returns {boolean}
+     */
+    function findAutocomplete() {
+        if (algoliaConfig.autocomplete.enabled) {
+            var parent = document.querySelector(algoliaConfig.instant.selector);
+            if (parent) {
+                var nestedAC = parent.querySelector('#algolia-autocomplete-container');
+                if (nestedAC && nestedAC.parentNode) {
+                    nestedAC.parentNode.removeChild(nestedAC);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Setup wrapper DOM object to contain InstantSearch
+     */
+    function setupWrapper() {
+        // Add class to instant selector
+        document.querySelector(algoliaConfig.instant.selector).classList.add('algolia-instant-replaced-content');
+
+        // Create wrapper element
+        const el = document.querySelector(algoliaConfig.instant.selector);
+        let wrapperEl = document.createElement('div');
+        wrapperEl.setAttribute("id", selectors.instantResultsWrapper);
+        el.parentNode.insertBefore(wrapperEl, el);
+        wrapperEl.appendChild(el);
+
+        const template = document.querySelector('#instant_wrapper_template').innerHTML;
+        let templateVars = {
+            second_bar: algoliaConfig.instant.enabled,
+            findAutocomplete: findAutocomplete(),
+            config: algoliaConfig.instant,
+            translations: algoliaConfig.translations,
+        };
+
+        const wrapperHtml = templateProcessor.process(template, templateVars);
+
+        // Add wrapper to DOM
+        document.getElementById(selectors.instantResultsWrapper).innerHTML += '<div id="algolia-instant-selector-results">' + wrapperHtml + '</div>';
+        document.querySelector('#algolia-instant-selector-results').innerHTML = wrapperHtml;
+        document.getElementById(selectors.instantResultsWrapper).style.display = 'block';
+    }
+
+    /**
+     * @returns {string[]}
+     */
+    function getRuleContexts() {
+        const ruleContexts = ['magento_filters', '']; // Empty context to keep BC for already create rules in dashboard
+        if (algoliaConfig.request.categoryId.length) {
+            ruleContexts.push('magento-category-' + algoliaConfig.request.categoryId);
+        }
+
+        if (algoliaConfig.request.landingPageId.length) {
+            ruleContexts.push(
+                'magento-landingpage-' + algoliaConfig.request.landingPageId
+            );
+        }
+        return ruleContexts;
+    }
+
+    /**
+     * Get search parameters for configure widget
+     * @returns {Object}
+     */
+    function getSearchParameters() {
+        const searchParameters = {
+            hitsPerPage: algoliaConfig.hitsPerPage,
+            ruleContexts: getRuleContexts()
+        };
+
+            if (
+                algoliaConfig.request.path.length &&
+                window.location.hash.indexOf('categories.level0') === -1
+            ) {
+                if (!algoliaConfig.areCategoriesInFacets) {
+                searchParameters['facetsRefinements'] = {};
+                searchParameters['facetsRefinements']['categories.level' + algoliaConfig.request.level] = [algoliaConfig.request.path];
+            }
+        }
+
+        if (algoliaConfig.instant.isVisualMerchEnabled && algoliaConfig.isCategoryPage) {
+                searchParameters.filters = `${
+                    algoliaConfig.instant.categoryPageIdAttribute
+                }:"${algoliaConfig.request.path.replace(/"/g, '\\"')}"`;
+        }
+
+        return searchParameters;
+    }
+
+    /**
+     * @returns {string}
+     */
+    function getAlgoliaAgent() {
+        return 'Magento2 integration (' + algoliaConfig.extensionVersion + ')';
+    }
+
+    /**
+     * Setup attributes for current refinements widget
+     * @returns {*[]}
+     */
+    function getCurrentRefinementsAttributes() {
+        let attributes = [];
+        algoliaConfig.facets.forEach(function (facet) {
+            let name = facet.attribute;
+
+            if (name === 'categories') {
+                name = 'categories.level0';
+            }
+
+            if (name === 'price') {
+                name = facet.attribute + algoliaConfig.priceKey;
+            }
+
+            attributes.push({
+                name: name,
+                    label: facet.label ? facet.label : facet.attribute,
+            });
+        });
+
+        return attributes;
+    }
+
+    let isStarted = false;
+
+    function startInstantSearch(search) {
+        if (isStarted === true) {
+            return;
+        }
+        search = algolia.triggerHooks(
+            'beforeInstantsearchStart',
+            search
+        );
+        search.start();
+
+        search = algolia.triggerHooks(
+            'afterInstantsearchStart',
+            search
+        );
+        isStarted = true;
+    }
+
+    function getFacetWidget (facet, templates) {
         const panelOptions = {
             templates: {
                 header: '<div class="name">'
@@ -595,114 +836,27 @@ function initAlgoliaInstantSearch() {
         if (facet.type === 'slider') {
             delete templates.item;
 
-            return ['rangeSlider', {
-                container: facet.wrapper.appendChild(createISWidgetContainer(facet.attribute)),
+            return ['rangeSlider',
+                {
+                container: facet.wrapper.appendChild(
+                    createISWidgetContainer(facet.attribute)
+                ),
                 attribute: facet.attribute,
                 templates: templates,
                 pips: false,
                 panelOptions: panelOptions,
                 tooltips: {
                     format: function (formattedValue) {
-                        return facet.attribute.match(/price/) === null ?
-                            parseInt(formattedValue) :
-                            hyva.formatPrice(formattedValue);
+                        return facet.attribute.match(/price/) === null
+                            ? parseInt(formattedValue)
+                            : hyva.formatPrice(formattedValue);
                     }
                 }
             }];
         }
-    };
-
-    let facetWrapper = document.getElementById('instant-search-facets-container');
-    for (let facetIndex in algoliaConfig.facets) {
-        let facet = algoliaConfig.facets[facetIndex];
-        if (facet.attribute.indexOf("price") !== -1)
-            facet.attribute = facet.attribute + algoliaConfig.priceKey;
-
-        facet.wrapper = facetWrapper;
-
-        const templates = {
-            item: document.getElementById('refinements-lists-item-template').innerHTML
-        };
-
-        const widgetInfo = customAttributeFacet[facet.attribute] !== undefined ?
-            customAttributeFacet[facet.attribute](facet, templates) :
-            getFacetWidget(facet, templates);
-
-        const widgetType = widgetInfo[0],
-            widgetConfig = widgetInfo[1];
-
-        if (typeof allWidgetConfiguration[widgetType] === 'undefined') {
-            allWidgetConfiguration[widgetType] = [widgetConfig];
-        } else {
-            allWidgetConfiguration[widgetType].push(widgetConfig);
-        }
     }
 
 
-    if (algoliaConfig.analytics.enabled) {
-        if (typeof algoliaAnalyticsPushFunction !== 'function') {
-            let algoliaAnalyticsPushFunction = function (formattedParameters, state, results) {
-                const trackedUrl = '/catalogsearch/result/?q=' + state.query + '&' + formattedParameters + '&numberOfHits=' + results.nbHits;
-
-                // Universal Analytics
-                if (typeof window.ga !== 'undefined') {
-                    window.ga('set', 'page', trackedUrl);
-                    window.ga('send', 'pageView');
-                }
-            };
-        }
-
-        allWidgetConfiguration['analytics'] = {
-            pushFunction: algoliaAnalyticsPushFunction,
-            delay: algoliaConfig.analytics.delay,
-            triggerOnUIInteraction: algoliaConfig.analytics.triggerOnUiInteraction,
-            pushInitialSearch: algoliaConfig.analytics.pushInitialSearch
-        };
-    }
-
-    allWidgetConfiguration = algolia.triggerHooks('beforeWidgetInitialization', allWidgetConfiguration);
-
-    for (let widgetType in allWidgetConfiguration) {
-        if (Array.isArray(allWidgetConfiguration[widgetType]) === true) {
-            for (let i in allWidgetConfiguration[widgetType]) {
-                addWidget(search, widgetType, allWidgetConfiguration[widgetType][i], instantsearch);
-            }
-        } else {
-            addWidget(search, widgetType, allWidgetConfiguration[widgetType], instantsearch);
-        }
-    }
-
-    // Capture active redirect URL with IS facet params for add to cart from PLP
-    if (algoliaConfig.instant.isAddToCartEnabled) {
-        search.on('render', () => {
-            const cartForms = document.querySelectorAll('[data-role="tocart-form"]');
-            cartForms.forEach((form, i) => {
-                const ts = Date.now();
-                form.addEventListener('submit', e => {
-                    const url = `${algoliaConfig.request.url}${window.location.search}`;
-                    e.target.elements[algoliaConfig.instant.addToCartParams.redirectUrlParam].value = AlgoliaBase64.mageEncode(url);
-                })
-            });
-        });
-    }
-
-    /** Initialise searching **/
-    let isStarted = false;
-
-    function startInstantSearch(search) {
-        if (isStarted === true) {
-            return;
-        }
-
-        search = algolia.triggerHooks('beforeInstantsearchStart', search);
-        search.start();
-        algolia.triggerHooks('afterInstantsearchStart', search);
-
-        isStarted = true;
-    }
-
-    /** Initialise searching **/
-    startInstantSearch(search);
 
     function addWidget(search, type, config, instantsearch) {
         if (type === 'custom') {
@@ -737,4 +891,20 @@ function initAlgoliaInstantSearch() {
         }
         return options;
     }
+
+    function addMobileRefinementsToggle() {
+        //TODO Emilie to js
+        /*$('#refine-toggle').on('click', function () {
+            $('#instant-search-facets-container').toggleClass('hidden-sm').toggleClass('hidden-xs');
+            if ($(this).html().trim()[0] === '+')
+                $(this).html('- ' + algoliaConfig.translations.refine);
+            else
+                $(this).html('+ ' + algoliaConfig.translations.refine);
+        });*/
+    }
+
+
+
+    // Initialize the Algolia InstantSearch
+    initialize();
 }

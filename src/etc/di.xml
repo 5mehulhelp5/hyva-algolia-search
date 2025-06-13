@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Algolia\AlgoliaSearch\Block\Widget\TrendsItem" type="Blackbird\HyvaAlgoliaSearch\Block\Widget\TrendsItem"/>
+    <preference for="Algolia\AlgoliaSearch\Block\Widget\LookingSimilar" type="Blackbird\HyvaAlgoliaSearch\Block\Widget\LookingSimilar"/>
 </config>

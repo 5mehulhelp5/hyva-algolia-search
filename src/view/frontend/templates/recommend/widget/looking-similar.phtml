@@ -1,0 +1,37 @@
+<?php
+
+use Blackbird\HyvaAlgoliaSearch\ViewModel\InstantSearchViewModel;
+
+/**
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+/** @var \Algolia\AlgoliaSearch\Block\Widget\LookingSimilar $block */
+$isEnabled = $block->isLookingSimilarEnabled();
+$uniqueToken = $block->generateUniqueToken();
+
+/** @var InstantSearchViewModel $viewModel */
+$viewModel = $viewModels->require(InstantSearchViewModel::class);
+
+if ($isEnabled):
+    $lsContainer =  'lsItems' . $block->generateUniqueToken(); ?>
+    <div id="<?= $lsContainer ?>" class="LSItem recommend-component"></div>
+    <script>
+        function initRecommendLS<?= $uniqueToken ?>() {
+            Promise.all([
+                <?php foreach($viewModel->getRecommendedLSScripts() as $script) :?>
+                blackbird.loadExternalResource("<?= $script ?>"),
+                <?php endforeach; ?>]
+            ).then(data => {
+                window.addEventListener('init-algolia-LS-done', function () {
+                    initAlgoliaRecommendedTrends("<?= $lsContainer ?>", "numOfLookingSimilarItem" : "<?= $block->getData('numOfLookingSimilarItem') ?>", "objectIDs" : <?= $block->getProductIds() ?>);
+                });
+
+                window.dispatchEvent(new CustomEvent('init-algolia-LS'));
+            });
+        }
+        window.addEventListener('DOMContentLoaded', function (){
+            initRecommendLS<?= $uniqueToken ?>();
+        });
+
+    </script>
+<?php endif; ?>
