@@ -579,7 +579,9 @@ function initAlgoliaInstantSearch() {
             return false;
         }
 
-        if (!$(algoliaConfig.instant.selector).length) {
+        const instantElement = document.querySelector(algoliaConfig.instant.selector);
+
+        if (!instantElement) {
             throw new Error(
                 `[Algolia] Invalid instant-search selector: ${algoliaConfig.instant.selector}`
             );
@@ -587,9 +589,7 @@ function initAlgoliaInstantSearch() {
 
         if (
             algoliaConfig.autocomplete.enabled &&
-            $(algoliaConfig.instant.selector).find(
-                algoliaConfig.autocomplete.selector
-            ).length
+            instantElement.querySelector(algoliaConfig.autocomplete.selector)
         ) {
             throw new Error(
                 `[Algolia] You can't have a search input matching "${algoliaConfig.autocomplete.selector}" ` +
