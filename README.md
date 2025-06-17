@@ -8,6 +8,10 @@ Compat module for Algolia Search on Magento 2 using Hyvä Themes. This requires:
 - Access to Algolia
 - [blackbird/external-ressource-loader](https://github.com/blackbird-agency/external-resources-loader) to dynamically load all the Algolia ressources. 
 
+## Compatibility
+
+This module is only compatible with algoliasearch from version 3.15 onwards.
+
 ## Setup
 
 Get the package
