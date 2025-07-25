@@ -10,10 +10,6 @@ Compat module for Algolia Search on Magento 2 using Hyvä Themes. This requires:
 
 ## Compatibility
 
-This module is only compatible with algoliasearch up to version 3.14.
-
-## Compatibility
-
 This module is only compatible with algoliasearch from version 3.15 onwards.
 
 ## Setup
