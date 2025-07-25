@@ -6,7 +6,11 @@
 Compat module for Algolia Search on Magento 2 using Hyvä Themes. This requires:
 - A [Hyvä Themes](https://www.hyva.io/) key
 - Access to Algolia
-- [blackbird/external-ressource-loader](https://github.com/blackbird-agency/external-resources-loader) to dynamically load all the Algolia ressources. 
+- [blackbird/external-ressource-loader](https://github.com/blackbird-agency/external-resources-loader) to dynamically load all the Algolia ressources.
+
+## Compatibility
+
+This module is only compatible with algoliasearch up to version 3.14.
 
 ## Compatibility
 
@@ -87,3 +91,4 @@ Compare and wishlist feature has been reported.
 - As of now, the Ajax add to basket feature has been implemented within a limited scope. Simple products have the quick ATB option but configurable products are **forwarded to the product page**.
 - The native Hyvä Themes implementation of the option selection on a product tile **has not** been integrated yet.
 - Filters styling on a listing page are quite raw at the moment. This will be improved in the future
+
