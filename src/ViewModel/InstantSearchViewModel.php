@@ -65,9 +65,11 @@ class InstantSearchViewModel implements ArgumentInterface
             array_merge(
                 $this->getAlgoliaScripts(),
                 [
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/hogan.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/hogan.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/mustache.min.js'),
+                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/template-engine.js'),
                     $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/instantsearch.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/algoliasearch-lite.js')
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/algolia-search.min.js'),
                 ]
             );
     }
@@ -78,9 +80,10 @@ class InstantSearchViewModel implements ArgumentInterface
     public function getAlgoliaScripts(): array
     {
         return [
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/common.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/instantsearch.production.min.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/search-insights.min.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/common.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/base64.js'),
+            $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/algolia-instantsearch.min.js'),
+            $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/search-insights.min.js'),
         ];
     }
 
@@ -101,10 +104,10 @@ class InstantSearchViewModel implements ArgumentInterface
             array_merge(
                 $this->getAlgoliaScripts(),
                 [
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/recommend.min.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/recommend-js.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend-js.min.js'),
                     $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/recommend.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/recommend/products.js')
+                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/recommend/products.js')
                 ]
             );
     }
@@ -118,13 +121,30 @@ class InstantSearchViewModel implements ArgumentInterface
             array_merge(
                 $this->getAlgoliaScripts(),
                 [
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/recommend.min.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/recommend-js.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend-js.min.js'),
                     $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/recommend-trends.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/recommend/products.js')
+                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/recommend/products.js')
                 ]
             );
     }
+    /**
+     * @return array
+     */
+    public function getRecommendedLSScripts(): array
+    {
+        return
+            array_merge(
+                $this->getAlgoliaScripts(),
+                [
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/recommend-js.min.js'),
+                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/recommend-LS.js'),
+                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/recommend/products.js')
+                ]
+            );
+    }
+
 
 
     /**
@@ -136,9 +156,9 @@ class InstantSearchViewModel implements ArgumentInterface
             array_merge(
                 $this->getAlgoliaScripts(),
                 [
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/algoliasearch-lite.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/autocomplete.production.min.js'),
-                    $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/autocomplete-plugin-query-suggestions.production.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/algolia-search.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/algolia-autocomplete.min.js'),
+                    $this->getAssetUrl('Algolia_AlgoliaSearch::js/lib/query-suggestions-plugin.min.js'),
                     $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/autocomplete.js')
                 ],
                 $this->getAutocompleteTemplateScripts()
@@ -151,11 +171,11 @@ class InstantSearchViewModel implements ArgumentInterface
     public function getAutocompleteTemplateScripts(): array
     {
         return [
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/autocomplete/additional-section.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/autocomplete/categories.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/autocomplete/pages.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/autocomplete/products.js'),
-            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/internals/templates/autocomplete/suggestions.js')
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/autocomplete/additional-section.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/autocomplete/categories.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/autocomplete/pages.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/autocomplete/products.js'),
+            $this->getAssetUrl('Blackbird_HyvaAlgoliaSearch::js/template/autocomplete/suggestions.js')
         ];
     }
 }

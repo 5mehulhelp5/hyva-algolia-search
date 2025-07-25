@@ -1,45 +1,82 @@
-@layer components {
-    .aa-Autocomplete {
-        .aa-Input {
-            @apply w-full p-2 text-lg leading-normal transition appearance-none focus:outline-none focus:border-transparent;
-        }
-
-        .aa-SubmitButton, .aa-ClearButton {
-            @apply hidden;
-        }
+.aa-Autocomplete {
+    .aa-Input {
+        @apply w-full p-2 text-lg leading-normal transition appearance-none focus:outline-none focus:border-transparent;
     }
 
-    .aa-Panel {
-        @apply absolute z-50 bg-container-lighter !top-0;
+    .aa-SubmitButton, .aa-ClearButton {
+        @apply hidden;
     }
+}
 
-    .aa-PanelLayout {
-        @apply shadow p-8;
+.aa-Panel {
+    @apply absolute z-50 bg-container-lighter !top-0;
+}
+
+.aa-PanelLayout {
+    @apply shadow p-8;
+}
+
+.aa-Source {
+    @apply mb-4;
+
+    &:has(.aa-SourceNoResults) {
+        @apply hidden;
     }
+}
 
-    .aa-Source {
-        @apply mb-4;
-        &:has(.aa-SourceNoResults) {
-            @apply hidden;
-        }
+.aa-SourceHeader {
+    @apply font-bold pb-4;
+}
+
+.aa-SourceFooter {
+    @apply mt-4;
+
+    span {
+        @apply font-bold;
     }
+}
 
-    .aa-SourceHeader {
-        @apply font-bold pb-4;
-    }
+.aa-List {
+    @apply gap-4;
+}
 
-    .aa-SourceFooter {
-        @apply mt-4;
-        span {
-            @apply font-bold;
-        }
-    }
+.aa-Item {
+    @apply flex flex-col w-full h-full bg-white shadow hover:bg-gray-100 px-2 py-4;
+}
 
-    .aa-List {
-        @apply gap-4;
-    }
+#autocomplete-products-footer {
+    @apply max-md:hidden;
+}
 
+@screen md {
     .aa-Item {
         @apply flex flex-col w-full h-full bg-white shadow hover:bg-gray-100 px-2 py-4;
     }
+
+    .aa-Panel.productColumn2 .aa-PanelLayout section:nth-child(1) {
+        @apply row-start-1 col-start-1 row-end-2 col-end-2 pt-5;
+    }
+
+    .aa-Panel.productColumn2 .aa-PanelLayout section:nth-child(2),
+    .aa-Panel.productColumn1 .aa-PanelLayout section:nth-child(1) {
+        @apply ml-10 min-w-[570px];
+    }
+
+    .aa-Panel.productColumn2 .aa-PanelLayout section:nth-child(2) {
+        @apply row-start-1 col-start-2 row-end-5 col-end-3;
+    }
+
+    .aa-Panel .aa-PanelLayout section:nth-child(3) {
+        @apply row-start-2 col-start-1 row-end-3 col-end-2;
+    }
+
+    .aa-Panel .aa-PanelLayout section:nth-child(4) {
+        @apply row-start-3 col-start-1 row-end-4 col-end-2;
+    }
+
+    .aa-Panel .aa-PanelLayout {
+        @apply grid gap-x-0 gap-y-0 pb-[45px];
+    }
 }
+
+

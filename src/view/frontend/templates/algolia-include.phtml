@@ -60,6 +60,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
                 <?php endforeach; ?>]
             ).then(data => {
                 initCommon();
+                initBase64();
                 initAlgoliaInsights();
                 initAlgoliaRecommended('<?= $block->getRequest()->getFullActionName() ?>', objectIds);
             });
@@ -72,6 +73,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
 
             commonInitialized = true
             initAlgoliaCommon();
+            initBase64();
         }
 
         if (algoliaConfig.instant.enabled && (algoliaConfig.isCategoryPage || algoliaConfig.isSearchPage)) {
@@ -79,14 +81,14 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
         }
 
         <?php if($block->getRequest()->getFullActionName() === 'catalog_product_view'): ?>
-        if (algoliaConfig.recommend.enabledFBT || algoliaConfig.recommend.enabledRelated || algoliaConfig.recommend.isTrendItemsEnabledInPDP) {
+        if (algoliaConfig.recommend.enabledFBT || algoliaConfig.recommend.enabledRelated || algoliaConfig.recommend.isTrendItemsEnabledInPDP || algoliaConfig.recommend.isLookingSimilarEnabledInPDP) {
             let objectIds = ["<?= $block->getRequest()->getParam('id') ?>"];
             initRecommended(objectIds);
         }
         <?php endif;?>
 
         <?php if($block->getRequest()->getFullActionName() === 'checkout_cart_index'): ?>
-        if (algoliaConfig.recommend.enabledFBTInCart || algoliaConfig.recommend.enabledRelatedInCart || algoliaConfig.recommend.isTrendItemsEnabledInPCart) {
+        if (algoliaConfig.recommend.enabledFBTInCart || algoliaConfig.recommend.enabledRelatedInCart || algoliaConfig.recommend.isTrendItemsEnabledInPCart || algoliaConfig.recommend.isLookingSimilarEnabledInCart) {
             let recommendedLoaded = false;
             window.addEventListener('private-content-loaded', function (event) {
                 if (!recommendedLoaded) {
@@ -99,7 +101,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
                     initRecommended(objectIds);
                     recommendedLoaded = true;
                 }
-            }
+            });
         }
         <?php endif;?>
 
@@ -113,15 +115,13 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
             items.forEach(function (item) {
                 objectIds.push(item.product_id);
             });
-        }
+        });
         <?php endif; ?>
 
         if (algoliaConfig.autocomplete.enabled) {
             document.getElementById('menu-search-icon').onclick = async () => {
-                await initAutocomplete()
-                algolia.registerHook('afterAutocompleteStart', function () {
-                    document.querySelector('#algoliaAutocomplete input').focus();
-                });
+                await initAutocomplete();
+                document.querySelector('#algoliaAutocomplete input')?.focus();
             }
         }
 
@@ -129,6 +129,12 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
             initCommon();
             initAlgoliaInsights();
             window.dispatchEvent(new CustomEvent('init-algolia-trends-done'));
+        });
+
+        window.addEventListener('init-algolia-LS', function () {
+            initCommon();
+            initAlgoliaInsights();
+            window.dispatchEvent(new CustomEvent('init-algolia-LS-done'));
         });
 
         window.addEventListener('user-allowed-save-cookie', function () {
