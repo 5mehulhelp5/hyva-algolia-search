@@ -893,13 +893,23 @@ function initAlgoliaInstantSearch() {
 
     function addMobileRefinementsToggle() {
         //TODO Emilie to js
-        /*$('#refine-toggle').on('click', function () {
-            $('#instant-search-facets-container').toggleClass('hidden-sm').toggleClass('hidden-xs');
-            if ($(this).html().trim()[0] === '+')
-                $(this).html('- ' + algoliaConfig.translations.refine);
-            else
-                $(this).html('+ ' + algoliaConfig.translations.refine);
-        });*/
+        document.addEventListener('DOMContentLoaded', function () {
+            var refineToggle = document.getElementById('refine-toggle');
+            var facetsContainer = document.getElementById('instant-search-facets-container');
+
+            if (refineToggle && facetsContainer) {
+                refineToggle.addEventListener('click', function () {
+                    facetsContainer.classList.toggle('hidden-xs');
+
+                    var currentText = refineToggle.innerHTML.trim();
+                    if (currentText[0] === '+') {
+                        refineToggle.innerHTML = '- ' + algoliaConfig.translations.refine;
+                    } else {
+                        refineToggle.innerHTML = '+ ' + algoliaConfig.translations.refine;
+                    }
+                });
+            }
+        });
     }
 
 
