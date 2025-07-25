@@ -158,7 +158,6 @@ function initAlgoliaInstantSearch() {
                         data.seconds = data.processingTimeMS / 1000;
                         data.translations = algoliaConfig.translations;
 
-                        // TODO: Revisit this injected jQuery logic
                         const searchParams = new URLSearchParams(window.location.search);
                         const searchQuery = searchParams.has('q') || '';
                         if (searchQuery === '' && !algoliaConfig.isSearchPage) {
