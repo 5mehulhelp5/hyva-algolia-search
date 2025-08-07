@@ -45,7 +45,7 @@
                 </argument>
             </action>
         </referenceBlock>
-        <referenceBlock name="algolia.instant.face">
+        <referenceBlock name="algolia.instant.facet">
             <action method="setTemplate">
                 <argument name="setTemplate" xsi:type="string">
                     Blackbird_HyvaAlgoliaSearch::instant/facet.phtml
