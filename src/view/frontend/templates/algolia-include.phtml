@@ -74,6 +74,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
             commonInitialized = true
             initAlgoliaCommon();
             initBase64();
+            window.dispatchEvent(new CustomEvent('algolia-loaded'));
         }
 
         if (algoliaConfig.instant.enabled && (algoliaConfig.isCategoryPage || algoliaConfig.isSearchPage)) {
