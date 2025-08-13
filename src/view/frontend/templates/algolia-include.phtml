@@ -122,7 +122,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
         if (algoliaConfig.autocomplete.enabled) {
             document.getElementById('menu-search-icon').addEventListener('click', async () => {
                 await initAutocomplete();
-            })
+            },{once: true});
         }
 
         window.addEventListener('init-algolia-trends', function () {
