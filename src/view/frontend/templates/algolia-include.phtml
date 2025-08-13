@@ -120,10 +120,9 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
         <?php endif; ?>
 
         if (algoliaConfig.autocomplete.enabled) {
-            document.getElementById('menu-search-icon').onclick = async () => {
+            document.getElementById('menu-search-icon').addEventListener('click', async () => {
                 await initAutocomplete();
-                document.querySelector('#algoliaAutocomplete input')?.focus();
-            }
+            })
         }
 
         window.addEventListener('init-algolia-trends', function () {

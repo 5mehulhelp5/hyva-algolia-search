@@ -1,0 +1,16 @@
+<?php
+
+use Algolia\AlgoliaSearch\Block\Algolia;
+
+/** @var Algolia $block */
+$config = $block->getConfigHelper();
+
+if ($config->isDefaultSelector() && $config->isAutocompleteEnabled()): ?>
+<script>
+    window.addEventListener('algolia-loaded', () => {
+        algolia.registerHook('afterAutocompleteStart', () => {
+            document.querySelector('#algoliaAutocomplete input')?.focus();
+        });
+    },{ once: true})
+</script>
+<?php endif; ?>
