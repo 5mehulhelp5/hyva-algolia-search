@@ -33,6 +33,9 @@
                 <block name="algolia-hook-afterAutocompleteStart"
                        template="Blackbird_HyvaAlgoliaSearch::hook/afterAutocompleteStart.phtml"
                        class="Algolia\AlgoliaSearch\Block\Algolia" />
+                <block name="algolia-hook-beforeWidgetInitialization"
+                       template="Blackbird_HyvaAlgoliaSearch::hook/beforeWidgetInitialization.phtml"
+                       class="Algolia\AlgoliaSearch\Block\Algolia" />
             </container>
         </referenceBlock>
 

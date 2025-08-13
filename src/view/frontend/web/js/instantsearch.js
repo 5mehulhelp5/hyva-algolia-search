@@ -206,11 +206,6 @@ function initAlgoliaInstantSearch() {
                 }),
 
                 transformItems: (items) => {
-                    if (items.length !== 0) {
-                        document.getElementById('instant-search-active-filters-label').classList.remove('hidden');
-                    } else {
-                        document.getElementById('instant-search-active-filters-label').classList.add('hidden');
-                    }
                     return (
                         items
                             // This filter is only applicable if categories facet is included as an attribute
