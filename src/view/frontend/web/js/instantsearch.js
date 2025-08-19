@@ -501,10 +501,14 @@ function initAlgoliaInstantSearch() {
                     window.ga('send', 'pageView');
                 }
             };
+
+            allWidgetConfiguration['analytics'] = {
+                pushFunction: algoliaAnalyticsPushFunction,
+            };
         }
 
         allWidgetConfiguration['analytics'] = {
-            pushFunction: algoliaAnalyticsPushFunction,
+            ...allWidgetConfiguration['analytics'],
             delay: algoliaConfig.analytics.delay,
             triggerOnUIInteraction: algoliaConfig.analytics.triggerOnUiInteraction,
             pushInitialSearch: algoliaConfig.analytics.pushInitialSearch,
