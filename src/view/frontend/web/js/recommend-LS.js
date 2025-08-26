@@ -11,7 +11,7 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, objectIDs) {
     const title = window.algoliaConfig.recommend.lookingSimilarTitl;
     const addToCartEnabled = window.algoliaConfig.recommend.isAddToCartEnabledInLookingSimilar;
 
-    recommendJs.lookingSimilar({
+    let lookingSimilarOptions = {
         container:  "#" +containerValue,
         recommendClient,
         indexName,
@@ -29,5 +29,9 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, objectIDs) {
         itemComponent({item, html}) {
             return productsHtml.getItemHtml({item, html, addToCartEnabled});
         },
-    });
+    }
+
+    lookingSimilarOptions = algolia.triggerHooks( 'beforeLookingSimilarOptionsInit', lookingSimilarOptions);
+    recommendJs.lookingSimilar(lookingSimilarOptions);
+    algolia.triggerHooks( 'afterLookingSimilarOptionsInit', recommendJs.lookingSimilar);
 }

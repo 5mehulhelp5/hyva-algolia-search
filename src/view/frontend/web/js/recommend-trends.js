@@ -11,7 +11,7 @@ function initAlgoliaRecommendedTrends(containerValue, numOfTrendsItem, facetName
     const title = window.algoliaConfig.recommend.trendingItemsTitle;
     const addToCartEnabled = window.algoliaConfig.recommend.isAddToCartEnabledInTrendsItem;
 
-    recommendJs.trendingItems({
+    let trendingItemsOptions = {
         container:  "#" +containerValue,
         facetName: facetName ? facetName : '',
         facetValue: facetValue ? facetValue : '',
@@ -30,5 +30,9 @@ function initAlgoliaRecommendedTrends(containerValue, numOfTrendsItem, facetName
         itemComponent({item, html}) {
             return productsHtml.getItemHtml({item, html, addToCartEnabled});
         },
-    });
+    }
+
+    trendingItemsOptions = algolia.triggerHooks( 'beforeTrendingItemsInit', trendingItemsOptions);
+    recommendJs.trendingItems(trendingItemsOptions);
+    algolia.triggerHooks( 'afterTrendingItemsInit', recommendJs.trendingItems);
 }
