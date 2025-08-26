@@ -1,4 +1,4 @@
-function initAlgoliaRecommendedLS(containerValue, numOfLSItem, facetName, facetValue) {
+function initAlgoliaRecommendedLS(containerValue, numOfLSItem, objectIDs) {
 
     this.defaultIndexName = window.algoliaConfig.indexName + '_products';
     const recommend = window['@algolia/recommend'];
@@ -13,10 +13,9 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, facetName, facetV
 
     recommendJs.lookingSimilar({
         container:  "#" +containerValue,
-        facetName: facetName ? facetName : '',
-        facetValue: facetValue ? facetValue : '',
         recommendClient,
         indexName,
+        objectIDs,
         maxRecommendations: numOfLSItem ? parseInt(numOfLSItem) : window.algoliaConfig.recommend.limitLookingSimilarItems,
         transformItems: function (items) {
             return items.map((item, index) => ({

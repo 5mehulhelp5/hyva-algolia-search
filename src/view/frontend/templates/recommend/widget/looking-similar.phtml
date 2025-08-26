@@ -23,7 +23,7 @@ if ($isEnabled):
                 <?php endforeach; ?>]
             ).then(data => {
                 window.addEventListener('init-algolia-LS-done', function () {
-                    initAlgoliaRecommendedTrends("<?= $lsContainer ?>", "numOfLookingSimilarItem" : "<?= $block->getData('numOfLookingSimilarItem') ?>", "objectIDs" : <?= $block->getProductIds() ?>);
+                    initAlgoliaRecommendedLS("<?= $lsContainer ?>", "<?= $block->getData('numOfLookingSimilarItem') ?>", "<?= $block->getProductIds() ?>");
                 });
 
                 window.dispatchEvent(new CustomEvent('init-algolia-LS'));
