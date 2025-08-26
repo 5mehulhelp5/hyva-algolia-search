@@ -34,5 +34,5 @@ function initAlgoliaRecommendedTrends(containerValue, numOfTrendsItem, facetName
 
     trendingItemsOptions = algolia.triggerHooks( 'beforeTrendingItemsInit', trendingItemsOptions);
     recommendJs.trendingItems(trendingItemsOptions);
-    algolia.triggerHooks( 'afterTrendingItemsInit', recommendJs.trendingItems);
+    algolia.triggerHooks( 'afterTrendingItemsInit', trendingItemsOptions);
 }

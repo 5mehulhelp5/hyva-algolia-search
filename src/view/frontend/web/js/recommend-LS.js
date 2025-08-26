@@ -31,7 +31,7 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, objectIDs) {
         },
     }
 
-    lookingSimilarOptions = algolia.triggerHooks( 'beforeLookingSimilarOptionsInit', lookingSimilarOptions);
+    lookingSimilarOptions = algolia.triggerHooks( 'beforeLookingSimilarInit', lookingSimilarOptions);
     recommendJs.lookingSimilar(lookingSimilarOptions);
-    algolia.triggerHooks( 'afterLookingSimilarOptionsInit', recommendJs.lookingSimilar);
+    algolia.triggerHooks( 'afterLookingSimilarInit', lookingSimilarOptions);
 }
