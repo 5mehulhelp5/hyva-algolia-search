@@ -1,6 +1,6 @@
 {
     "name": "blackbird/module-hyva-algolia-search",
-    "version": "101.0.2",
+    "version": "101.0.3",
     "description": "Blackbird_HyvaAlgoliaSearch makes Algolia_AlgoliaSearch compatible with Hyvä Themes",
     "type": "magento2-module",
     "require": {
