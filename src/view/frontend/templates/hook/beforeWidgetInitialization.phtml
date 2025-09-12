@@ -1,0 +1,26 @@
+<?php
+
+use Algolia\AlgoliaSearch\Block\Algolia;
+
+/** @var Algolia $block */
+$config = $block->getConfigHelper();
+
+if ($config->isDefaultSelector() && $config->isAutocompleteEnabled()): ?>
+    <script>
+        window.addEventListener('algolia-loaded', () => {
+            algolia.registerHook('beforeWidgetInitialization', (allWidgetConfiguration) => {
+                const {currentRefinements} = allWidgetConfiguration;
+                const originalTransformItems = currentRefinements.transformItems.bind(currentRefinements);
+                currentRefinements.transformItems = (items) => {
+                    if (items.length !== 0) {
+                        document.getElementById('instant-search-active-filters-label').classList.remove('hidden');
+                    } else {
+                        document.getElementById('instant-search-active-filters-label').classList.add('hidden');
+                    }
+                    return originalTransformItems(items);
+                }
+                return allWidgetConfiguration;
+            });
+        },{ once: true})
+    </script>
+<?php endif; ?>

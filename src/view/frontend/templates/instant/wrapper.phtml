@@ -35,7 +35,7 @@ $heroiconsSolid = $viewModels->require(HeroiconsSolid::class);
                     </div>
                     <div class="hidden-xs md:block pt-3 md:pt-0" id="instant-search-facets-container">
                         <div class="w-full flex flex-col px-8 py-4 bg-white shadow hidden-xs md:block">
-                            <span class="text-base md:text-lg font-semibold">
+                            <span class="text-base md:text-lg font-semibold hidden" id="instant-search-active-filters-label">
                                 <?php echo $block->escapeHtml(__('Active filtering')); ?>
                             </span>
                             <div class="order-2" id="clear-refinements"></div>

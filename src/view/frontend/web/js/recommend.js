@@ -11,6 +11,7 @@ function initAlgoliaRecommended(context, objectIDs) {
     const indexName = this.defaultIndexName;
     const recommendProductsHtml = window['@algolia/recommend-templates-products'];
 
+
     if (context === 'catalog_product_view' || context === 'checkout_cart_index') {
         const title = algoliaConfig.recommend.FBTTitle;
         const addToCartEnabled = algoliaConfig.recommend.isAddToCartEnabledInFBT;
@@ -21,11 +22,11 @@ function initAlgoliaRecommended(context, objectIDs) {
                 context === 'checkout_cart_index')
         ) {
             // --- Add the current product objectID here ---
-            recommendJs.frequentlyBoughtTogether({
+            let frequentlyBoughtTogetherOptions = {
                 container: '#frequentlyBoughtTogether',
                 recommendClient,
                 indexName,
-                        objectIDs,
+                objectIDs,
                 maxRecommendations: algoliaConfig.recommend.limitFBTProducts,
                 transformItems: function (items) {
                     return items.map((item, index) => ({
@@ -50,7 +51,11 @@ function initAlgoliaRecommended(context, objectIDs) {
                         addToCartEnabled}
                     );
                 },
-            });
+            }
+
+            frequentlyBoughtTogetherOptions = algolia.triggerHooks( 'beforeFrequentlyBoughtTogetherInit', frequentlyBoughtTogetherOptions);
+            recommendJs.frequentlyBoughtTogether(frequentlyBoughtTogetherOptions);
+            algolia.triggerHooks( 'afterFrequentlyBoughtTogetherInit', frequentlyBoughtTogetherOptions);
         }
         if (
             (algoliaConfig.recommend.enabledRelated &&
@@ -60,7 +65,8 @@ function initAlgoliaRecommended(context, objectIDs) {
         ) {
             const title = algoliaConfig.recommend.relatedProductsTitle;
             const addToCartEnabled = algoliaConfig.recommend.isAddToCartEnabledInRelatedProduct;
-            recommendJs.relatedProducts({
+
+            let relatedProductsOptions = {
                 container: '#relatedProducts',
                 recommendClient,
                 indexName,
@@ -85,7 +91,10 @@ function initAlgoliaRecommended(context, objectIDs) {
                         addToCartEnabled
                     });
                 },
-            });
+            }
+            relatedProductsOptions = algolia.triggerHooks( 'beforeRelatedProductInit', relatedProductsOptions);
+            recommendJs.relatedProducts(relatedProductsOptions);
+            algolia.triggerHooks( 'afterRelatedProductInit', relatedProductsOptions);
         }
     }
 
@@ -97,7 +106,8 @@ function initAlgoliaRecommended(context, objectIDs) {
     ) {
         const title = algoliaConfig.recommend.trendingItemsTitle;
         const addToCartEnabled = algoliaConfig.recommend.isAddToCartEnabledInTrendsItem;
-        recommendJs.trendingItems({
+
+        let trendingItemsOptions = {
             container: '#trendItems',
             facetName: algoliaConfig.recommend.trendItemFacetName ? algoliaConfig.recommend.trendItemFacetName : '',
             facetValue: algoliaConfig.recommend.trendItemFacetValue ? algoliaConfig.recommend.trendItemFacetValue : '',
@@ -119,7 +129,12 @@ function initAlgoliaRecommended(context, objectIDs) {
             itemComponent({item, html}) {
                 return recommendProductsHtml.getItemHtml({item, html, addToCartEnabled});
             },
-        });
+        }
+
+        trendingItemsOptions = algolia.triggerHooks( 'beforeTrendingItemsInit', trendingItemsOptions);
+        recommendJs.trendingItems(trendingItemsOptions);
+        algolia.triggerHooks( 'afterTrendingItemsInit', trendingItemsOptions);
+
     }
 
     if (
@@ -130,7 +145,8 @@ function initAlgoliaRecommended(context, objectIDs) {
     ) {
         const title = algoliaConfig.recommend.lookingSimilarTitle;
         const addToCartEnabled = algoliaConfig.recommend.isAddToCartEnabledInLookingSimilar;
-        recommendJs.lookingSimilar({
+
+        let lookingSimilarOptions = {
             container: '#lookingSimilar',
             recommendClient,
             indexName,
@@ -151,6 +167,10 @@ function initAlgoliaRecommended(context, objectIDs) {
             itemComponent({item, html}) {
                 return recommendProductsHtml.getItemHtml({item, html, addToCartEnabled});
             },
-        });
+        }
+
+        lookingSimilarOptions = algolia.triggerHooks( 'beforeLookingSimilarInit', lookingSimilarOptions);
+        recommendJs.lookingSimilar(lookingSimilarOptions);
+        algolia.triggerHooks( 'afterLookingSimilarInit', lookingSimilarOptions);
     }
 }

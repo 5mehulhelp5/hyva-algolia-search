@@ -1,4 +1,4 @@
-function initAlgoliaRecommendedLS(containerValue, numOfLSItem, facetName, facetValue) {
+function initAlgoliaRecommendedLS(containerValue, numOfLSItem, objectIDs) {
 
     this.defaultIndexName = window.algoliaConfig.indexName + '_products';
     const recommend = window['@algolia/recommend'];
@@ -11,12 +11,11 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, facetName, facetV
     const title = window.algoliaConfig.recommend.lookingSimilarTitl;
     const addToCartEnabled = window.algoliaConfig.recommend.isAddToCartEnabledInLookingSimilar;
 
-    recommendJs.lookingSimilar({
+    let lookingSimilarOptions = {
         container:  "#" +containerValue,
-        facetName: facetName ? facetName : '',
-        facetValue: facetValue ? facetValue : '',
         recommendClient,
         indexName,
+        objectIDs,
         maxRecommendations: numOfLSItem ? parseInt(numOfLSItem) : window.algoliaConfig.recommend.limitLookingSimilarItems,
         transformItems: function (items) {
             return items.map((item, index) => ({
@@ -30,5 +29,9 @@ function initAlgoliaRecommendedLS(containerValue, numOfLSItem, facetName, facetV
         itemComponent({item, html}) {
             return productsHtml.getItemHtml({item, html, addToCartEnabled});
         },
-    });
+    }
+
+    lookingSimilarOptions = algolia.triggerHooks( 'beforeLookingSimilarInit', lookingSimilarOptions);
+    recommendJs.lookingSimilar(lookingSimilarOptions);
+    algolia.triggerHooks( 'afterLookingSimilarInit', lookingSimilarOptions);
 }

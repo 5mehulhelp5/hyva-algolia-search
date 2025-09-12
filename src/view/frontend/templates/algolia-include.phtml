@@ -15,8 +15,9 @@ $catalogSearchHelper = $block->getCatalogSearchHelper();
 
 /** @var InstantSearchViewModel $viewModel */
 $viewModel = $viewModels->require(InstantSearchViewModel::class);
-
-if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
+?>
+<?php if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
+    <?= $block->getChildHtml('insights-js') ?>
     <script>
         window.algoliaConfig = <?= /** @noEscape */ $viewModel->getJsConfig(); ?>;
 
@@ -74,6 +75,7 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
             commonInitialized = true
             initAlgoliaCommon();
             initBase64();
+            window.dispatchEvent(new CustomEvent('algolia-loaded'));
         }
 
         if (algoliaConfig.instant.enabled && (algoliaConfig.isCategoryPage || algoliaConfig.isSearchPage)) {
@@ -119,10 +121,9 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
         <?php endif; ?>
 
         if (algoliaConfig.autocomplete.enabled) {
-            document.getElementById('menu-search-icon').onclick = async () => {
+            document.getElementById('menu-search-icon').addEventListener('click', async () => {
                 await initAutocomplete();
-                document.querySelector('#algoliaAutocomplete input')?.focus();
-            }
+            },{once: true});
         }
 
         window.addEventListener('init-algolia-trends', function () {
@@ -142,4 +143,3 @@ if ($config->isDefaultSelector() && $config->isInstantEnabled()): ?>
         });
     </script>
 <?php endif; ?>
-<?= $block->getChildHtml('insights-js') ?>
