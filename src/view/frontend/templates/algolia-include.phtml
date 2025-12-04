@@ -121,9 +121,17 @@ $viewModel = $viewModels->require(InstantSearchViewModel::class);
         <?php endif; ?>
 
         if (algoliaConfig.autocomplete.enabled) {
-            document.getElementById('menu-search-icon').addEventListener('click', async () => {
-                await initAutocomplete();
-            },{once: true});
+            const searchIcon = document.getElementById('menu-search-icon');
+
+            if (searchIcon) {
+                searchIcon.addEventListener('click', async () => {
+                    await initAutocomplete();
+                },{once: true});
+            } else {
+                (async () => {
+                    await initAutocomplete();
+                })();
+            }
         }
 
         window.addEventListener('init-algolia-trends', function () {
