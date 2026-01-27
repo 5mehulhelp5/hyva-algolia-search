@@ -61,28 +61,28 @@ window['@algolia/templates-products'] = {
     },
 
     getOriginalPriceHtml: (item, html, priceGroup) => {
-        if (item['price'][algoliaConfig.currencyCode][priceGroup + '_original_formated'] == null) return "";
+        if (item['price']?.[algoliaConfig.currencyCode]?.[priceGroup + '_original_formated'] == null) return "";
 
         return html`<span
             class="before_special"> ${item['price'][algoliaConfig.currencyCode][priceGroup + '_original_formated']} </span>`;
     },
 
     getTierPriceHtml: (item, html, priceGroup) => {
-        if (item['price'][algoliaConfig.currencyCode][priceGroup + '_tier_formated'] == null) return "";
+        if (item['price']?.[algoliaConfig.currencyCode]?.[priceGroup + '_tier_formated'] == null) return "";
 
         return html`<span class="tier_price"> As low as <span
             class="tier_value">${item['price'][algoliaConfig.currencyCode][priceGroup + '_tier_formated']}</span></span>`;
     },
 
     getPricingHtml: function (item, html) {
-        if (item['price'] === undefined) return "";
+        if (item['price'] === null) return "";
 
         const priceGroup = algoliaConfig.priceGroup || 'default';
 
         return html`
             <div className="algoliasearch-autocomplete-price text-lg font-semibold tracking-wider leading-7">
-                 <span className="after_special ${item['price'][algoliaConfig.currencyCode][priceGroup + '_original_formated'] != null ? 'promotion' : ''}">
-                    ${item['price'][algoliaConfig.currencyCode][priceGroup + '_formated']}
+                 <span className="after_special ${item['price']?.[algoliaConfig.currencyCode]?.[priceGroup + '_original_formated'] != null ? 'promotion' : ''}">
+                    ${item['price']?.[algoliaConfig.currencyCode]?.[priceGroup + '_formated']}
                 </span>
                 ${this.getOriginalPriceHtml(item, html, priceGroup)}
 
@@ -91,7 +91,7 @@ window['@algolia/templates-products'] = {
     },
 
     getFooterSearchCategoryLinks: (html, resultDetails) => {
-        if (resultDetails.allCategories === undefined || resultDetails.allCategories.length === 0) return "";
+        if (resultDetails.allCategories === null || resultDetails.allCategories.length === 0) return "";
 
         return html` ${algoliaConfig.translations.orIn}
         ${resultDetails.allCategories.map((list, index) =>

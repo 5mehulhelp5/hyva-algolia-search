@@ -142,7 +142,7 @@ l.ais-Pagination-item--selected a {
 }
 
 .rheostat-handle .rheostat-tooltip {
-    @apply absolute -left-2/3 -top-6 leading-5 ;
+    @apply absolute -left-2/3 -top-6 leading-5 whitespace-nowrap;
 }
 
 .rheostat-progress {

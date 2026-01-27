@@ -1,11 +1,16 @@
 <?php
 
-use Blackbird\HyvaAlgoliaSearch\ViewModel\InstantSearchViewModel;
+declare(strict_types=1);
 
-/**
- * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
- */
-/** @var \Algolia\AlgoliaSearch\Block\Widget\LookingSimilar $block */
+use Algolia\AlgoliaSearch\Block\Widget\LookingSimilar;
+use Blackbird\HyvaAlgoliaSearch\ViewModel\InstantSearchViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+
+/** @var LookingSimilar $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
 $isEnabled = $block->isLookingSimilarEnabled();
 $uniqueToken = $block->generateUniqueToken();
 
@@ -14,7 +19,7 @@ $viewModel = $viewModels->require(InstantSearchViewModel::class);
 
 if ($isEnabled):
     $lsContainer =  'lsItems' . $block->generateUniqueToken(); ?>
-    <div id="<?= $lsContainer ?>" class="LSItem recommend-component"></div>
+    <div id="<?= $escaper->escapeHtmlAttr($lsContainer) ?>" class="LSItem recommend-component"></div>
     <script>
         function initRecommendLS<?= $uniqueToken ?>() {
             Promise.all([
@@ -23,14 +28,14 @@ if ($isEnabled):
                 <?php endforeach; ?>]
             ).then(data => {
                 window.addEventListener('init-algolia-LS-done', function () {
-                    initAlgoliaRecommendedLS("<?= $lsContainer ?>", "<?= $block->getData('numOfLookingSimilarItem') ?>", "<?= $block->getProductIds() ?>");
+                    initAlgoliaRecommendedLS("<?= $escaper->escapeJs($lsContainer) ?>", "<?= $block->getData('numOfLookingSimilarItem') ?>", "<?= $block->getProductIds() ?>");
                 });
 
                 window.dispatchEvent(new CustomEvent('init-algolia-LS'));
             });
         }
         window.addEventListener('DOMContentLoaded', function (){
-            initRecommendLS<?= $uniqueToken ?>();
+            initRecommendLS<?= $escaper->escapeJs($uniqueToken) ?>();
         });
 
     </script>

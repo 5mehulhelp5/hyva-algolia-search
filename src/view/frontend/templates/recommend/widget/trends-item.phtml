@@ -1,11 +1,16 @@
 <?php
 
-use Blackbird\HyvaAlgoliaSearch\ViewModel\InstantSearchViewModel;
+declare(strict_types=1);
 
-/**
- * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
- */
-/** @var \Algolia\AlgoliaSearch\Block\Widget\TrendsItem $block */
+use Algolia\AlgoliaSearch\Block\Widget\TrendsItem;
+use Blackbird\HyvaAlgoliaSearch\ViewModel\InstantSearchViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+
+/** @var TrendsItem $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
 $isEnabled = $block->isTrendingItemEnabled();
 $uniqueToken = $block->generateUniqueToken();
 
@@ -14,7 +19,7 @@ $viewModel = $viewModels->require(InstantSearchViewModel::class);
 
 if ($isEnabled):
     $trendConstainer = 'trendItems' . $uniqueToken; ?>
-    <div id="<?= $trendConstainer ?>" class="trendsItem recommend-component"></div>
+    <div id="<?= $escaper->escapehtmlAttr($trendConstainer) ?>" class="trendsItem recommend-component"></div>
     <script>
         function initRecommendTrends<?= $uniqueToken ?>() {
             Promise.all([
@@ -23,14 +28,14 @@ if ($isEnabled):
                 <?php endforeach; ?>]
             ).then(data => {
                 window.addEventListener('init-algolia-trends-done', function () {
-                    initAlgoliaRecommendedTrends("<?= $trendConstainer ?>", "<?= $block->getData('numOfTrendsItem') ?>", "<?= $block->getData('facetName') ?>", "<?= $block->getData('facetValue') ?>");
+                    initAlgoliaRecommendedTrends("<?= $escaper->escapeJs($trendConstainer) ?>", "<?= $block->getData('numOfTrendsItem') ?>", "<?= $block->getData('facetName') ?>", "<?= $block->getData('facetValue') ?>");
                 });
 
                 window.dispatchEvent(new CustomEvent('init-algolia-trends'));
             });
         }
         window.addEventListener('DOMContentLoaded', function (){
-            initRecommendTrends<?= $uniqueToken ?>();
+            initRecommendTrends<?= $escaper->escapeJs($uniqueToken) ?>();
         });
 
     </script>
