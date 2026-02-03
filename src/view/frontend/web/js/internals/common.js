@@ -35,7 +35,15 @@ function initAlgoliaCommon() {
             'beforeFacetInitialization',
             'beforeInstantsearchStart',
             'afterInstantsearchStart',
-            'afterInsightsBindEvents'
+            'afterInsightsBindEvents',
+            'beforeFrequentlyBoughtTogetherInit',
+            'afterFrequentlyBoughtTogetherInit',
+            'beforeRelatedProductInit',
+            'afterRelatedProductInit',
+            'beforeTrendingItemsInit',
+            'afterTrendingItemsInit',
+            'beforeLookingSimilarInit',
+            'afterLookingSimilarInit'
         ],
         registeredHooks: [],
         registerHook: function (hookName, callback) {

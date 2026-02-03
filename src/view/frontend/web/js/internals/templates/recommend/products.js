@@ -7,7 +7,7 @@ window['@algolia/recommend-templates-products'] = {
         if (!recommendations || !recommendations.length) {
             return "";
         }
-        return html`<h3 class="auc-Recommend-title">${title}</h3>`;
+        return html`<div class="flex px-6 pt-6 pb-3 mb-6 md:flex-row border-b-2 border-gray-300"><h3 class="auc-Recommend-title">${title}</h3></div>`;
     },
 
     getItemHtml: function ({item, html, addToCartEnabled}) {

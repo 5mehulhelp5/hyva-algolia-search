@@ -17,9 +17,6 @@ function initAlgoliaInstantSearch() {
 
     let hasInteracted = false;
 
-    // TODO: Vérifier s'il faut mettre d'autres éléments ici ?
-    // TODO: Compléter 'selectors'
-
     ///////////////////////////
     //  Main build functions //
     ///////////////////////////
