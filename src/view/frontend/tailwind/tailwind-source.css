@@ -1,4 +1,4 @@
-@import url(components/common.css);
-@import url(components/instant-search.css);
-@import url(components/autocomplete.css);
-@import url(components/recommend.css);
+@import "components/common.css";
+@import "components/instant-search.css";
+@import "components/autocomplete.css";
+@import "components/recommend.css";

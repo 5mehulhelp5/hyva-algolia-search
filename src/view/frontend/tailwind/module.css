@@ -1,0 +1,7 @@
+@source "../**/*.phtml";
+@source "../**/*.xml";
+
+@import "./components/autocomplete.css";
+@import "./components/common.css";
+@import "./components/instant-search.css";
+@import "./components/recommend.css";
