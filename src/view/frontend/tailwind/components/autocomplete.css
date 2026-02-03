@@ -79,4 +79,10 @@
     }
 }
 
+#algoliaFooter {
+    @apply flex items-center gap-x-1.5;
 
+    img {
+        @apply min-w-20;
+    }
+}

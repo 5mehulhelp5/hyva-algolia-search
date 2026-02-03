@@ -11,7 +11,6 @@ function initAlgoliaRecommended(context, objectIDs) {
     const indexName = this.defaultIndexName;
     const recommendProductsHtml = window['@algolia/recommend-templates-products'];
 
-
     if (context === 'catalog_product_view' || context === 'checkout_cart_index') {
         const title = algoliaConfig.recommend.FBTTitle;
         const addToCartEnabled = algoliaConfig.recommend.isAddToCartEnabledInFBT;

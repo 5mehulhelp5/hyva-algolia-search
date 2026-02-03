@@ -4,7 +4,7 @@
         <remove src="Algolia_AlgoliaSearch::css/grid.css"/>
         <remove src="Algolia_AlgoliaSearch::css/autocomplete.css"/>
         <remove src="Algolia_AlgoliaSearch::css/algolia-reset.css"/>
-        <remove src="Algolia_AlgoliaSearch::css/instantsearch.v3.css"/>
+        <remove src="Algolia_AlgoliaSearch::css/instantsearch.css"/>
         <remove src="Algolia_AlgoliaSearch::css/recommend.css"/>
     </head>
     <body>
@@ -64,13 +64,6 @@
             <action method="setTemplate">
                 <argument name="setTemplate" xsi:type="string">
                     Blackbird_HyvaAlgoliaSearch::instant/stats.phtml
-                </argument>
-            </action>
-        </referenceBlock>
-        <referenceBlock name="algolia.instant.refinements">
-            <action method="setTemplate">
-                <argument name="setTemplate" xsi:type="string">
-                    Blackbird_HyvaAlgoliaSearch::instant/refinements.phtml
                 </argument>
             </action>
         </referenceBlock>
