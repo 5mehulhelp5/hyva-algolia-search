@@ -1291,7 +1291,7 @@ function initAlgoliaInstantSearch() {
                     const url = `${algoliaConfig.request.url}${window.location.search}`;
                     e.target.elements[
                         algoliaConfig.instant.addToCartParams.redirectUrlParam
-                        ].value = algoliaBase64.mageEncode(url);
+                        ].value = window.AlgoliaBase64.mageEncode(url);
                 });
             });
         });
