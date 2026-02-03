@@ -930,8 +930,9 @@ function initAlgoliaAutocomplete() {
 
     function addKeyboardNavigation() {
         if (algoliaConfig.autocomplete.isNavigatorEnabled) {
-            document.body.append('<style>.aa-Item[aria-selected="true"]{background-color: #f2f2f2;}</style>');
-
+            const style = document.createElement('style');
+            style.textContent = `.aa-Item[aria-selected="true"]{background-color: var(--algolia-item-selected,#f2f2f2);}`
+            document.body.append(style);
         }
     }
 
